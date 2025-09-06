@@ -13,3 +13,5 @@ GRANT ALL PRIVILEGES ON SCHEMA public TO adminitrator_chase;
 
 -- права на все таблицы
 GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA public TO adminitrator_chase;
+
+ALTER USER adminitrator_chase WITH PASSWORD 'werawera00';

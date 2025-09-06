@@ -1,0 +1,25 @@
+{% extends "main/base.html" %}
+{% load static %}
+
+{% block title %}Главная{% endblock %}
+
+{% block content %}
+<div class="row row-cols-1 row-cols-md-3 g-4">
+    {% for card in cards %}
+    <div class="col">
+        <div class="card h-100 bg-dark text-light border-secondary">
+            {% if card.image %}
+                <img src="{{ card.image.url }}" class="card-img-top" alt="{{ card.title }}">
+            {% else %}
+                <img src="{% static 'img/default_ad.png' %}" class="card-img-top" alt="Нет изображения">
+            {% endif %}
+            <div class="card-body">
+                <h5 class="card-title">{{ card.title }}</h5>
+            </div>
+        </div>
+    </div>
+    {% empty %}
+    <p>Карточек пока нет.</p>
+    {% endfor %}
+</div>
+{% endblock %}

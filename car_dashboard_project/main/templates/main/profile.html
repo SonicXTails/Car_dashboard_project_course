@@ -1,0 +1,38 @@
+{% extends "main/base.html" %}
+{% load static %}
+
+{% block title %}Профиль{% endblock %}
+
+{% block content %}
+<div class="mb-3">
+    {% if request.user.id == profile_user.id %}
+        <a href="{% url 'create_card' %}" class="btn btn-success">Создать объявление</a>
+    {% endif %}
+</div>
+
+<div class="row row-cols-1 row-cols-md-3 g-4">
+    {% for card in cards %}
+    <div class="col">
+        <div class="card h-100 bg-dark text-light border-secondary">
+            {% if card.image %}
+                <img src="{{ card.image.url }}" class="card-img-top" alt="{{ card.title }}">
+            {% else %}
+                <img src="{% static 'img/default_ad.png' %}" class="card-img-top" alt="Нет изображения">
+            {% endif %}
+            <div class="card-body">
+                <h5 class="card-title">{{ card.title }}</h5>
+            </div>
+
+            <div class="card-footer d-flex justify-content-between">
+                {% if request.user.id == profile_user.id %}
+                    <a href="{% url 'edit_card' card.id %}" class="btn btn-sm btn-outline-primary">✏️ Редактировать</a>
+                    <a href="{% url 'delete_card' card.id %}" class="btn btn-sm btn-outline-danger">❌ Завершить</a>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    {% empty %}
+    <p>Карточек пока нет.</p>
+    {% endfor %}
+</div>
+{% endblock %}
