@@ -2,7 +2,7 @@ from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework import status
-from .serializers import RegisterSerializer, LoginSerializer, UserSerializer
+from .serializers import RegisterSerializer, LoginSerializer, UserSerializer, UserProfileSerializer
 from django.contrib.auth import authenticate, login, logout
 from main.models import CustomUser, Card
 from .serializers import CardSerializer
@@ -123,3 +123,14 @@ def card_detail_api(request, card_id):
             return Response({"detail": "Нет доступа"}, status=status.HTTP_403_FORBIDDEN)
         card.delete()
         return Response({"message": "Карточка удалена"}, status=status.HTTP_204_NO_CONTENT)
+    
+
+@api_view(["PUT"])
+@permission_classes([IsAuthenticated])
+def update_profile_api(request):
+    user = request.user
+    serializer = UserProfileSerializer(user, data=request.data, partial=True)
+    if serializer.is_valid():
+        serializer.save()
+        return Response(serializer.data)
+    return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)

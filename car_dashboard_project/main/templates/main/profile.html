@@ -4,9 +4,87 @@
 {% block title %}Профиль{% endblock %}
 
 {% block content %}
-<div class="mb-3">
+<div class="mb-3 d-flex justify-content-between align-items-center">
     {% if request.user.id == profile_user.id %}
         <a href="{% url 'create_card' %}" class="btn btn-success">Создать объявление</a>
+    {% endif %}
+</div>
+
+<!-- Форма редактирования профиля или отображение данных -->
+<div class="card mb-4 bg-dark text-light border-secondary p-3">
+    {% if request.user.id == profile_user.id and not profile_user.user_type %}
+        <!-- Форма редактирования профиля -->
+        <h5>Редактировать профиль</h5>
+        <form id="profile-form" method="POST" enctype="multipart/form-data">
+            {% csrf_token %}
+            
+            <div class="mb-3">
+                <label for="user_type" class="form-label">Тип пользователя</label>
+                <select id="user_type" name="user_type" class="form-select">
+                    <option value="">Выберите тип</option>
+                    <option value="individual" {% if profile_user.user_type == 'individual' %}selected{% endif %}>Физическое лицо</option>
+                    <option value="company" {% if profile_user.user_type == 'company' %}selected{% endif %}>Юридическое лицо</option>
+                </select>
+            </div>
+
+            <!-- Для физлица -->
+            <div id="individual_fields" style="display: {% if profile_user.user_type == 'individual' %}block{% else %}none{% endif %};">
+                <div class="mb-3">
+                    <label for="first_name" class="form-label">Имя</label>
+                    <input type="text" id="first_name" name="first_name" value="{{ profile_user.first_name }}" class="form-control">
+                </div>
+                <div class="mb-3">
+                    <label for="last_name" class="form-label">Фамилия</label>
+                    <input type="text" id="last_name" name="last_name" value="{{ profile_user.last_name }}" class="form-control">
+                </div>
+                <div class="mb-3">
+                    <label for="middle_name" class="form-label">Отчество</label>
+                    <input type="text" id="middle_name" name="middle_name" value="{{ profile_user.middle_name }}" class="form-control">
+                </div>
+            </div>
+
+            <!-- Для юрлица -->
+            <div id="company_fields" style="display: {% if profile_user.user_type == 'company' %}block{% else %}none{% endif %};">
+                <div class="mb-3">
+                    <label for="company_name" class="form-label">Название компании</label>
+                    <input type="text" id="company_name" name="company_name" value="{{ profile_user.company_name }}" class="form-control">
+                </div>
+            </div>
+
+            <!-- Фото и телефон (для всех) -->
+            <div class="mb-3">
+                <label for="profile_image" class="form-label">Фото профиля</label>
+                <input type="file" id="profile_image" name="profile_image" class="form-control">
+            </div>
+            <div class="mb-3">
+                <label for="phone" class="form-label">Телефон</label>
+                <input type="text" id="phone" name="phone" value="{{ profile_user.phone }}" class="form-control">
+            </div>
+
+            <button type="submit" class="btn btn-primary">Сохранить профиль</button>
+        </form>
+    {% else %}
+        <!-- Отображение данных профиля -->
+        <h5>Информация профиля</h5>
+        <p><strong>Тип пользователя:</strong> {{ profile_user.get_user_type_display }}</p>
+
+        {% if profile_user.user_type == 'individual' %}
+            <p><strong>Фамилия:</strong> {{ profile_user.last_name }}</p>
+            <p><strong>Имя:</strong> {{ profile_user.first_name }}</p>
+            <p><strong>Отчество:</strong> {{ profile_user.middle_name }}</p>
+        {% elif profile_user.user_type == 'company' %}
+            <p><strong>Компания:</strong> {{ profile_user.company_name }}</p>
+        {% endif %}
+
+        <p><strong>Телефон:</strong> {{ profile_user.phone }}</p>
+        <p>
+            <strong>Фото:</strong><br>
+            {% if profile_user.profile_image %}
+                <img src="{{ profile_user.profile_image.url }}" alt="Фото профиля" style="max-width:150px;">
+            {% else %}
+                <img src="{% static 'img/default_user.png' %}" alt="Фото профиля" style="max-width:150px;">
+            {% endif %}
+        </p>
     {% endif %}
 </div>
 
@@ -35,4 +113,26 @@
     <p>Карточек пока нет.</p>
     {% endfor %}
 </div>
+
+<!-- JS для динамического показа полей -->
+<script>
+const userTypeSelect = document.getElementById('user_type');
+const individualFields = document.getElementById('individual_fields');
+const companyFields = document.getElementById('company_fields');
+
+if (userTypeSelect) {
+    userTypeSelect.addEventListener('change', function() {
+        if (this.value === 'individual') {
+            individualFields.style.display = 'block';
+            companyFields.style.display = 'none';
+        } else if (this.value === 'company') {
+            individualFields.style.display = 'none';
+            companyFields.style.display = 'block';
+        } else {
+            individualFields.style.display = 'none';
+            companyFields.style.display = 'none';
+        }
+    });
+}
+</script>
 {% endblock %}

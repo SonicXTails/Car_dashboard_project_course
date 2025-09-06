@@ -6,15 +6,50 @@ from django.contrib.auth.decorators import login_required
 from django.http import HttpResponseForbidden
 from django.contrib.auth import login, authenticate, logout
 from .forms import CustomUserCreationForm, CustomAuthenticationForm
-from django.shortcuts import render, get_object_or_404
-from .models import CustomUser
 
 # Профиль пользователя
+@login_required
 def profile_view(request, user_id):
-    user = get_object_or_404(CustomUser, id=user_id)
+    profile_user = get_object_or_404(CustomUser, id=user_id)
     
+    # Запрет для admin и analyst
+    if request.user.role in ['admin', 'analyst']:
+        return HttpResponseForbidden("У вас нет доступа к профилю")
+
+    # Только владелец может редактировать
+    if request.user.id == profile_user.id:
+        if request.method == "POST":
+            user_type = request.POST.get("user_type", "")
+            first_name = request.POST.get("first_name", "")
+            last_name = request.POST.get("last_name", "")
+            middle_name = request.POST.get("middle_name", "")
+            company_name = request.POST.get("company_name", "")
+            phone = request.POST.get("phone", "")
+            profile_image = request.FILES.get("profile_image")
+
+            if user_type:
+                profile_user.user_type = user_type
+            if first_name != "":
+                profile_user.first_name = first_name
+            if last_name != "":
+                profile_user.last_name = last_name
+            if middle_name != "":
+                profile_user.middle_name = middle_name
+            if company_name != "":
+                profile_user.company_name = company_name
+            if phone != "":
+                profile_user.phone = phone
+            if profile_image:
+                profile_user.profile_image = profile_image
+
+            profile_user.save()
+            return redirect('profile', user_id=profile_user.id)
+
+    cards = Card.objects.filter(user=profile_user).order_by('-created_at')
+
     return render(request, 'main/profile.html', {
-        'profile_user': user,
+        'profile_user': profile_user,
+        'cards': cards,
     })
 
 def register_view(request):
@@ -46,20 +81,6 @@ def login_view(request):
 def logout_view(request):
     logout(request)
     return redirect('/')
-
-@login_required
-def profile_view(request, user_id):
-    # Запрет для admin и analyst
-    if request.user.role in ['admin', 'analyst']:
-        return HttpResponseForbidden("У вас нет доступа к профилю")
-
-    profile_user = get_object_or_404(CustomUser, id=user_id)
-    cards = Card.objects.filter(user=profile_user).order_by('-created_at')
-
-    return render(request, 'main/profile.html', {
-        'profile_user': profile_user,
-        'cards': cards,
-    })
 
 def home_view(request):
     cards = Card.objects.all().order_by('-created_at')
@@ -111,3 +132,4 @@ def admin_panel_view(request):
 def manager_panel_view(request):
     # Можно потом наполнить контентом
     return render(request, 'main/manager_panel.html')
+

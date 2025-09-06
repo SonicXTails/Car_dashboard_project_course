@@ -8,8 +8,24 @@ class CustomUser(AbstractUser):
         ('user', 'Пользователь'),
         ('analyst', 'Аналитик'),
     ]
+    TYPE_CHOICES = [
+        ('individual', 'Физическое лицо'),
+        ('company', 'Юридическое лицо')
+    ]
+
     role = models.CharField(max_length=10, choices=ROLE_CHOICES, default='user')
-    phone = models.CharField(max_length=20, blank=True, null=True)  # номер телефона
+    user_type = models.CharField(max_length=20, choices=TYPE_CHOICES, blank=True, null=True)
+    
+    # Для физлица
+    first_name = models.CharField(max_length=30, blank=True, null=True)
+    last_name = models.CharField(max_length=30, blank=True, null=True)
+    middle_name = models.CharField(max_length=30, blank=True, null=True)
+    
+    # Для юрлица
+    company_name = models.CharField(max_length=255, blank=True, null=True)
+    
+    phone = models.CharField(max_length=20, blank=True, null=True)
+    profile_image = models.ImageField(upload_to='profile_photos/', blank=True, null=True, default='img/default_user_img.png')
 
     @property
     def days_on_site(self):
