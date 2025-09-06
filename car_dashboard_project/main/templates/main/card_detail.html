@@ -1,0 +1,182 @@
+{% extends "main/base.html" %}
+{% load static %}
+
+{% block title %}Карточка{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-8">
+        <h2>{{ card.title }}</h2>
+        {% if card.image %}
+            <img src="{{ card.image.url }}" class="img-fluid" alt="{{ card.title }}">
+        {% else %}
+            <img src="{% static 'img/default_ad.png' %}" class="img-fluid" alt="Нет изображения">
+        {% endif %}
+    </div>
+    <div class="col-md-4">
+        <h4>Продавец</h4>
+        <p>{{ card.user.username }}</p>
+        <p>Рейтинг: <span id="user-rating">0</span> ⭐</p>
+        <button id="reviews-btn" class="btn btn-primary">Отзывы</button>
+    </div>
+</div>
+
+<!-- Модальное окно отзывов -->
+<div class="modal fade" id="reviewsModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Отзывы о {{ card.user.username }}</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <div id="reviews-list"></div>
+        {% if request.user.is_authenticated %}
+        <hr>
+        <h6>Ваш отзыв</h6>
+        <form id="review-form">
+          <div class="mb-2">
+            <label for="rating">Рейтинг</label>
+            <select id="rating" class="form-select" required>
+              <option value="1">1 ⭐</option>
+              <option value="2">2 ⭐</option>
+              <option value="3">3 ⭐</option>
+              <option value="4">4 ⭐</option>
+              <option value="5">5 ⭐</option>
+            </select>
+          </div>
+          <div class="mb-2">
+            <label for="comment">Комментарий</label>
+            <textarea id="comment" class="form-control" rows="3"></textarea>
+          </div>
+          <button type="submit" class="btn btn-success">Отправить</button>
+          <button type="button" id="delete-review" class="btn btn-danger">Удалить отзыв</button>
+        </form>
+        {% else %}
+        <p class="text-muted">Войдите, чтобы оставить отзыв.</p>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+// ====== CSRF ======
+function getCookie(name) {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+        const cookies = document.cookie.split(';');
+        for (let cookie of cookies) {
+            cookie = cookie.trim();
+            if (cookie.startsWith(name + '=')) {
+                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                break;
+            }
+        }
+    }
+    return cookieValue;
+}
+const csrftoken = getCookie('csrftoken');
+
+// ====== Элементы ======
+const userId = {{ card.user.id }};
+const reviewsBtn = document.getElementById('reviews-btn');
+const reviewsModal = new bootstrap.Modal(document.getElementById('reviewsModal'));
+const reviewsList = document.getElementById('reviews-list');
+
+{% if request.user.is_authenticated %}
+const reviewForm = document.getElementById('review-form');
+const deleteBtn = document.getElementById('delete-review');
+const ratingEl = document.getElementById('rating');
+const commentEl = document.getElementById('comment');
+let currentReviewId = null;
+const currentUserId = {{ request.user.id }};
+{% endif %}
+
+// ====== Функция загрузки отзывов ======
+async function fetchReviews() {
+    try {
+        const res = await fetch(`/api/users/${userId}/reviews/`);
+        const data = await res.json();
+        reviewsList.innerHTML = '';
+        let total = 0;
+        data.forEach(r => {
+            total += r.rating;
+            const div = document.createElement('div');
+            div.classList.add('mb-2');
+            div.innerHTML = `<strong>${r.reviewer_username}</strong> — ${r.rating} ⭐<br>${r.comment || ''}`;
+            reviewsList.appendChild(div);
+
+            {% if request.user.is_authenticated %}
+            if (r.reviewer === currentUserId) {
+                currentReviewId = r.id;
+                ratingEl.value = r.rating;
+                commentEl.value = r.comment || '';
+            }
+            {% endif %}
+        });
+        document.getElementById('user-rating').textContent = data.length ? (total / data.length).toFixed(1) : 0;
+    } catch(err) {
+        console.error(err);
+        reviewsList.innerHTML = '<p class="text-danger">Не удалось загрузить отзывы.</p>';
+    }
+}
+
+// ====== Показ модалки ======
+reviewsBtn.addEventListener('click', () => {
+    reviewsModal.show();
+    fetchReviews();
+});
+
+{% if request.user.is_authenticated %}
+// ====== Отправка / обновление отзыва ======
+reviewForm.addEventListener('submit', async e => {
+    e.preventDefault();
+    const method = currentReviewId ? 'PUT' : 'POST';
+    const url = `/api/users/${userId}/review/`;
+    try {
+        const res = await fetch(url, {
+            method,
+            headers: {
+                'Content-Type':'application/json',
+                'X-CSRFToken': csrftoken
+            },
+            body: JSON.stringify({
+                rating: parseInt(ratingEl.value),
+                comment: commentEl.value
+            }),
+            credentials: 'same-origin'
+        });
+        if (res.ok) {
+            fetchReviews();
+        } else {
+            alert('Ошибка при отправке отзыва');
+        }
+    } catch(err) {
+        console.error(err);
+    }
+});
+
+// ====== Удаление отзыва ======
+deleteBtn.addEventListener('click', async () => {
+    if (!currentReviewId) return;
+    try {
+        const res = await fetch(`/api/users/${userId}/review/`, {
+            method:'DELETE',
+            headers: {'X-CSRFToken': csrftoken},
+            credentials: 'same-origin'
+        });
+        if (res.ok) {
+            ratingEl.value = 1;
+            commentEl.value = '';
+            currentReviewId = null;
+            fetchReviews();
+        }
+    } catch(err) {
+        console.error(err);
+    }
+});
+{% endif %}
+</script>
+{% endblock %}

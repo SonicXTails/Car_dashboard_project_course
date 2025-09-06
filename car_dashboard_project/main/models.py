@@ -27,11 +27,12 @@ class CustomUser(AbstractUser):
 
     phone = models.CharField(max_length=20, blank=True, null=True)
     profile_image = models.ImageField(
-        upload_to='profile_photos/', 
-        blank=True, 
-        null=True, 
-        default='img/default_user_img.png'
+        upload_to='profile_photos/',
+        blank=True,
+        null=True,
+        default='profile_photos/default_user_img.png'
     )
+
 
     @property
     def days_on_site(self):
@@ -49,9 +50,9 @@ class Card(models.Model):
 
 
 class UserReview(models.Model):
-    reviewer = models.ForeignKey(CustomUser, on_delete=models.CASCADE, related_name='reviews_left')
-    reviewed = models.ForeignKey(CustomUser, on_delete=models.CASCADE, related_name='reviews_received')
-    rating = models.PositiveSmallIntegerField(choices=[(i, str(i)) for i in range(1, 6)])
+    reviewer = models.ForeignKey(CustomUser, related_name='reviews_given', on_delete=models.CASCADE)
+    reviewed = models.ForeignKey(CustomUser, related_name='reviews_received', on_delete=models.CASCADE)
+    rating = models.PositiveSmallIntegerField()
     comment = models.TextField(blank=True, null=True)
     created_at = models.DateTimeField(auto_now_add=True)
 

@@ -133,3 +133,7 @@ def manager_panel_view(request):
     # Можно потом наполнить контентом
     return render(request, 'main/manager_panel.html')
 
+@login_required
+def card_detail_view(request, card_id):
+    card = get_object_or_404(Card, id=card_id)
+    return render(request, 'main/card_detail.html', {'card': card})

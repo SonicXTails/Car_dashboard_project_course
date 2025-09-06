@@ -14,7 +14,11 @@
                 <img src="{% static 'img/default_ad.png' %}" class="card-img-top" alt="Нет изображения">
             {% endif %}
             <div class="card-body">
-                <h5 class="card-title">{{ card.title }}</h5>
+                <h5 class="card-title">
+                    <a href="{% url 'card_detail' card.id %}" class="text-light text-decoration-none">
+                        {{ card.title }}
+                    </a>
+                </h5>
             </div>
         </div>
     </div>

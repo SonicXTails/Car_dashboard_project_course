@@ -1,4 +1,6 @@
-/* --- Общие стили страницы --- */
+/* ============================================================
+   Общие стили страницы
+   ============================================================ */
 body {
     background-color: #121212 !important;
     color: #f5f5f5 !important;
@@ -7,9 +9,73 @@ body {
     padding: 0;
 }
 
-/* --- Карточки --- */
+/* ============================================================
+   Ссылки
+   ============================================================ */
+a {
+    color: #0d6efd;
+    text-decoration: none;
+    transition: color 0.2s;
+}
+
+a:hover {
+    color: #66aaff;
+}
+
+/* ============================================================
+   Кнопки
+   ============================================================ */
+.btn-primary,
+.btn {
+    background-color: #0d6efd !important;
+    border-color: #0d6efd !important;
+    color: #fff !important;
+    transition: background-color 0.2s, border-color 0.2s;
+}
+
+.btn-primary:hover,
+.btn:hover {
+    background-color: #66aaff !important;
+    border-color: #66aaff !important;
+}
+
+/* Кнопка удаления отзыва */
+#review-form button#delete-review {
+    margin-left: 0.5rem;
+    background-color: #ff4d4f !important;
+    border-color: #ff4d4f !important;
+}
+
+#review-form button#delete-review:hover {
+    background-color: #ff7875 !important;
+    border-color: #ff7875 !important;
+}
+
+/* ============================================================
+   Ошибки форм
+   ============================================================ */
+.invalid-feedback,
+ul.errorlist {
+    display: block;
+    color: #ff4d4f;
+    font-size: 0.875rem;
+    margin: 0.25rem 0;
+    list-style: none;
+    padding-left: 0;
+}
+
+/* Placeholder */
+input::placeholder,
+form input[type="search"]::placeholder {
+    color: #ccc;
+    opacity: 1;
+}
+
+/* ============================================================
+   Карточки
+   ============================================================ */
 .card {
-    background-color: #1e1e1e !important; /* тёмная карточка */
+    background-color: #1e1e1e !important;
     color: #f5f5f5 !important;
     border: 1px solid #2c2c2c !important;
     border-radius: 10px;
@@ -24,39 +90,32 @@ body {
     box-shadow: 0 6px 20px rgba(0, 0, 0, 0.6);
 }
 
-/* --- Изображения в карточках --- */
 .card-img-top {
     width: 100%;
-    object-fit: cover;   /* обрезает по краям, но не растягивает */
+    object-fit: cover;
     display: block;
     border-bottom: 1px solid #555;
 }
 
-/* Адаптивная высота фото */
-@media (max-width: 576px) {
-    .card-img-top {
-        height: 200px;
-    }
-}
-
-@media (min-width: 577px) and (max-width: 992px) {
-    .card-img-top {
-        height: 300px;
-    }
-}
-
-@media (min-width: 993px) {  /* десктоп */
-    .card-img-top {
-        height: 400px;
-    }
-}
-
 .card-title {
-    min-height: 3em;   /* чтобы заголовки выравнивались */
-    overflow: hidden;  /* обрезать слишком длинные */
+    min-height: 3em;   /* выравнивание заголовков */
+    overflow: hidden;  /* обрезка длинных */
 }
 
-/* --- Инпуты, textarea, select --- */
+/* Адаптивная высота изображений */
+@media (max-width: 576px) {
+    .card-img-top { height: 200px; }
+}
+@media (min-width: 577px) and (max-width: 992px) {
+    .card-img-top { height: 300px; }
+}
+@media (min-width: 993px) {
+    .card-img-top { height: 400px; }
+}
+
+/* ============================================================
+   Формы (инпуты, textarea, select)
+   ============================================================ */
 form input,
 form select,
 form textarea {
@@ -78,51 +137,67 @@ form textarea:focus {
     outline: none;
 }
 
-/* --- Ссылки --- */
-a {
-    color: #0d6efd;
-    text-decoration: none;
-    transition: color 0.2s;
+/* ============================================================
+   Форма отзывов
+   ============================================================ */
+#reviews-list div {
+    background-color: #2a2a2a;
+    padding: 0.75rem 1rem;
+    border-radius: 8px;
+    margin-bottom: 0.5rem;
+    border: 1px solid #3a3a3a;
 }
 
-a:hover {
-    color: #66aaff;
+#review-form {
+    background-color: #1f1f1f;
+    padding: 1rem;
+    border-radius: 10px;
+    border: 1px solid #333;
+    margin-top: 1rem;
 }
 
-/* --- Кнопки --- */
-.btn-primary,
-.btn {
-    background-color: #0d6efd !important;
-    border-color: #0d6efd !important;
-    color: #fff !important;
-    transition: background-color 0.2s, border-color 0.2s;
+#review-form h6 {
+    color: #f5f5f5;
+    margin-bottom: 0.75rem;
 }
 
-.btn-primary:hover,
-.btn:hover {
-    background-color: #66aaff !important;
-    border-color: #66aaff !important;
-}
-
-/* --- Ошибки формы --- */
-.invalid-feedback,
-ul.errorlist {
-    display: block;
-    color: #ff4d4f;
-    font-size: 0.875rem;
-    margin-top: 0.25rem;
-    margin-bottom: 0.25rem;
-    list-style: none;
-    padding-left: 0;
-}
-
-/* --- Placeholder --- */
-input::placeholder {
+#review-form label {
+    font-weight: 500;
     color: #ccc;
-    opacity: 1;
 }
 
-form input[type="search"]::placeholder {
-    color: #ccc;
-    opacity: 1;
+#review-form textarea,
+#review-form select {
+    background-color: #2c2c2c !important;
+    color: #f5f5f5 !important;
+}
+
+/* ============================================================
+   Модальное окно отзывов
+   ============================================================ */
+.modal-content {
+    background-color: #1e1e1e !important; /* фон окна */
+    color: #f5f5f5 !important;            /* текст */
+    border: 1px solid #333 !important;
+    border-radius: 10px;
+}
+
+.modal-header,
+.modal-footer {
+    background-color: #2a2a2a !important; /* шапка и футер */
+    color: #f5f5f5 !important;
+    border-bottom: 1px solid #333 !important;
+}
+
+.modal-title {
+    color: #f5f5f5 !important;
+}
+
+.modal-body {
+    background-color: #1e1e1e !important;
+    color: #f5f5f5 !important;
+}
+
+.btn-close {
+    filter: invert(1); /* крестик виден на тёмном фоне */
 }

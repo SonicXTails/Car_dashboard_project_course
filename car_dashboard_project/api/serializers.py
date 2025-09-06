@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from main.models import CustomUser, Card
+from main.models import CustomUser, Card, UserReview
 from django.contrib.auth import authenticate
 
 # Рег / Авторизация
@@ -45,4 +45,9 @@ class UserProfileSerializer(serializers.ModelSerializer):
         fields = ('user_type', 'first_name', 'last_name', 'middle_name',
                   'company_name', 'phone', 'profile_image')
 
-        
+# Отзывы
+class UserReviewSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = UserReview
+        fields = ['id', 'reviewer', 'reviewed', 'rating', 'comment']
+        read_only_fields = ['id', 'reviewer', 'reviewed']

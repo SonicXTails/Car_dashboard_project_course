@@ -4,91 +4,100 @@
 {% block title %}Профиль{% endblock %}
 
 {% block content %}
+
+<!-- Кнопка создания объявления -->
 <div class="mb-3 d-flex justify-content-between align-items-center">
     {% if request.user.id == profile_user.id %}
         <a href="{% url 'create_card' %}" class="btn btn-success">Создать объявление</a>
     {% endif %}
 </div>
 
-<!-- Форма редактирования профиля или отображение данных -->
-<div class="card mb-4 bg-dark text-light border-secondary p-3">
-    {% if request.user.id == profile_user.id and not profile_user.user_type %}
-        <!-- Форма редактирования профиля -->
-        <h5>Редактировать профиль</h5>
-        <form id="profile-form" method="POST" enctype="multipart/form-data">
-            {% csrf_token %}
-            
-            <div class="mb-3">
-                <label for="user_type" class="form-label">Тип пользователя</label>
-                <select id="user_type" name="user_type" class="form-select">
-                    <option value="">Выберите тип</option>
-                    <option value="individual" {% if profile_user.user_type == 'individual' %}selected{% endif %}>Физическое лицо</option>
-                    <option value="company" {% if profile_user.user_type == 'company' %}selected{% endif %}>Юридическое лицо</option>
-                </select>
+<div class="row">
+    <!-- Левая колонка: информация о пользователе -->
+    <div class="col-md-4">
+        <div class="card bg-dark text-light border-secondary mb-3 p-3">
+            <div class="text-center mb-3">
+                {% if profile_user.profile_image and profile_user.profile_image.name %}
+                    <img src="{{ profile_user.profile_image.url }}" alt="Фото профиля" class="img-thumbnail" style="max-width:120px;"
+                        onerror="this.onerror=null;this.src='{% static 'img/default_user_img.png' %}'">
+                {% else %}
+                    <img src="{% static 'img/default_user_img.png' %}" alt="Фото профиля" class="img-thumbnail" style="max-width:120px;">
+                {% endif %}
             </div>
-
-            <!-- Для физлица -->
-            <div id="individual_fields" style="display: {% if profile_user.user_type == 'individual' %}block{% else %}none{% endif %};">
-                <div class="mb-3">
-                    <label for="first_name" class="form-label">Имя</label>
-                    <input type="text" id="first_name" name="first_name" value="{{ profile_user.first_name }}" class="form-control">
-                </div>
-                <div class="mb-3">
-                    <label for="last_name" class="form-label">Фамилия</label>
-                    <input type="text" id="last_name" name="last_name" value="{{ profile_user.last_name }}" class="form-control">
-                </div>
-                <div class="mb-3">
-                    <label for="middle_name" class="form-label">Отчество</label>
-                    <input type="text" id="middle_name" name="middle_name" value="{{ profile_user.middle_name }}" class="form-control">
-                </div>
-            </div>
-
-            <!-- Для юрлица -->
-            <div id="company_fields" style="display: {% if profile_user.user_type == 'company' %}block{% else %}none{% endif %};">
-                <div class="mb-3">
-                    <label for="company_name" class="form-label">Название компании</label>
-                    <input type="text" id="company_name" name="company_name" value="{{ profile_user.company_name }}" class="form-control">
-                </div>
-            </div>
-
-            <!-- Фото и телефон (для всех) -->
-            <div class="mb-3">
-                <label for="profile_image" class="form-label">Фото профиля</label>
-                <input type="file" id="profile_image" name="profile_image" class="form-control">
-            </div>
-            <div class="mb-3">
-                <label for="phone" class="form-label">Телефон</label>
-                <input type="text" id="phone" name="phone" value="{{ profile_user.phone }}" class="form-control">
-            </div>
-
-            <button type="submit" class="btn btn-primary">Сохранить профиль</button>
-        </form>
-    {% else %}
-        <!-- Отображение данных профиля -->
-        <h5>Информация профиля</h5>
-        <p><strong>Тип пользователя:</strong> {{ profile_user.get_user_type_display }}</p>
-
-        {% if profile_user.user_type == 'individual' %}
-            <p><strong>Фамилия:</strong> {{ profile_user.last_name }}</p>
-            <p><strong>Имя:</strong> {{ profile_user.first_name }}</p>
-            <p><strong>Отчество:</strong> {{ profile_user.middle_name }}</p>
-        {% elif profile_user.user_type == 'company' %}
-            <p><strong>Компания:</strong> {{ profile_user.company_name }}</p>
-        {% endif %}
-
-        <p><strong>Телефон:</strong> {{ profile_user.phone }}</p>
-        <p>
-            <strong>Фото:</strong><br>
-            {% if profile_user.profile_image %}
-                <img src="{{ profile_user.profile_image.url }}" alt="Фото профиля" style="max-width:150px;">
-            {% else %}
-                <img src="{% static 'img/default_user.png' %}" alt="Фото профиля" style="max-width:150px;">
+            <p><strong>Тип пользователя:</strong> {{ profile_user.get_user_type_display }}</p>
+            {% if profile_user.user_type == 'individual' %}
+                <p><strong>Фамилия:</strong> {{ profile_user.last_name }}</p>
+                <p><strong>Имя:</strong> {{ profile_user.first_name }}</p>
+                <p><strong>Отчество:</strong> {{ profile_user.middle_name }}</p>
+            {% elif profile_user.user_type == 'company' %}
+                <p><strong>Компания:</strong> {{ profile_user.company_name }}</p>
             {% endif %}
-        </p>
-    {% endif %}
+            <p><strong>Телефон:</strong> {{ profile_user.phone }}</p>
+            {% if request.user.id == profile_user.id %}
+                <button id="edit-profile-btn" class="btn btn-primary mt-2 w-100">Изменить данные</button>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Правая колонка: форма редактирования -->
+    <div class="col-md-8">
+        {% if request.user.id == profile_user.id %}
+            <div class="card mb-4 bg-dark text-light border-secondary p-3" id="edit-profile-form" style="display:none;">
+                <h5>Редактировать профиль</h5>
+                <form method="POST" enctype="multipart/form-data">
+                    {% csrf_token %}
+                    <div class="mb-3">
+                        <label for="user_type" class="form-label">Тип пользователя</label>
+                        <select id="user_type" name="user_type" class="form-select">
+                            <option value="">Выберите тип</option>
+                            <option value="individual" {% if profile_user.user_type == 'individual' %}selected{% endif %}>Физическое лицо</option>
+                            <option value="company" {% if profile_user.user_type == 'company' %}selected{% endif %}>Юридическое лицо</option>
+                        </select>
+                    </div>
+
+                    <!-- Поля для физлица -->
+                    <div id="individual_fields" style="display: {% if profile_user.user_type == 'individual' %}block{% else %}none{% endif %};">
+                        <div class="mb-3">
+                            <label for="first_name" class="form-label">Имя</label>
+                            <input type="text" id="first_name" name="first_name" value="{{ profile_user.first_name }}" class="form-control">
+                        </div>
+                        <div class="mb-3">
+                            <label for="last_name" class="form-label">Фамилия</label>
+                            <input type="text" id="last_name" name="last_name" value="{{ profile_user.last_name }}" class="form-control">
+                        </div>
+                        <div class="mb-3">
+                            <label for="middle_name" class="form-label">Отчество</label>
+                            <input type="text" id="middle_name" name="middle_name" value="{{ profile_user.middle_name }}" class="form-control">
+                        </div>
+                    </div>
+
+                    <!-- Поля для юрлица -->
+                    <div id="company_fields" style="display: {% if profile_user.user_type == 'company' %}block{% else %}none{% endif %};">
+                        <div class="mb-3">
+                            <label for="company_name" class="form-label">Название компании</label>
+                            <input type="text" id="company_name" name="company_name" value="{{ profile_user.company_name }}" class="form-control">
+                        </div>
+                    </div>
+
+                    <!-- Фото и телефон -->
+                    <div class="mb-3">
+                        <label for="profile_image" class="form-label">Фото профиля</label>
+                        <input type="file" id="profile_image" name="profile_image" class="form-control">
+                    </div>
+                    <div class="mb-3">
+                        <label for="phone" class="form-label">Телефон</label>
+                        <input type="text" id="phone" name="phone" value="{{ profile_user.phone }}" class="form-control">
+                    </div>
+
+                    <button type="submit" class="btn btn-success">Сохранить профиль</button>
+                </form>
+            </div>
+        {% endif %}
+    </div>
 </div>
 
-<div class="row row-cols-1 row-cols-md-3 g-4">
+<!-- Карточки пользователя -->
+<div class="row row-cols-1 row-cols-md-3 g-4 mt-3">
     {% for card in cards %}
     <div class="col">
         <div class="card h-100 bg-dark text-light border-secondary">
@@ -100,7 +109,6 @@
             <div class="card-body">
                 <h5 class="card-title">{{ card.title }}</h5>
             </div>
-
             <div class="card-footer d-flex justify-content-between">
                 {% if request.user.id == profile_user.id %}
                     <a href="{% url 'edit_card' card.id %}" class="btn btn-sm btn-outline-primary">✏️ Редактировать</a>
@@ -114,11 +122,25 @@
     {% endfor %}
 </div>
 
-<!-- JS для динамического показа полей -->
+<!-- JS -->
 <script>
+const editBtn = document.getElementById('edit-profile-btn');
+const editForm = document.getElementById('edit-profile-form');
 const userTypeSelect = document.getElementById('user_type');
 const individualFields = document.getElementById('individual_fields');
 const companyFields = document.getElementById('company_fields');
+
+if (editBtn) {
+    editBtn.addEventListener('click', () => {
+        // Toggle: показываем или скрываем форму
+        if(editForm.style.display === 'none' || editForm.style.display === '') {
+            editForm.style.display = 'block';
+            window.scrollTo({ top: editForm.offsetTop - 20, behavior: 'smooth' });
+        } else {
+            editForm.style.display = 'none';
+        }
+    });
+}
 
 if (userTypeSelect) {
     userTypeSelect.addEventListener('change', function() {
@@ -135,4 +157,5 @@ if (userTypeSelect) {
     });
 }
 </script>
+
 {% endblock %}

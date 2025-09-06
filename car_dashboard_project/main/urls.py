@@ -1,6 +1,6 @@
 from django.urls import path
 from .views import home_view, profile_view, create_card_view
-from .views import edit_card_view, delete_card_view, admin_panel_view, manager_panel_view
+from .views import edit_card_view, delete_card_view, admin_panel_view, manager_panel_view, card_detail_view
 from . import views
 
 urlpatterns = [
@@ -17,4 +17,7 @@ urlpatterns = [
 
     path('admin-panel/', admin_panel_view, name='admin_panel'),
     path('manager-panel/', manager_panel_view, name='manager_panel'),
+
+    path('cards/<int:card_id>/', card_detail_view, name='card_detail'),
+
 ]

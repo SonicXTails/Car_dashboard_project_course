@@ -2,10 +2,9 @@ from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework import status
-from .serializers import RegisterSerializer, LoginSerializer, UserSerializer, UserProfileSerializer
+from .serializers import RegisterSerializer, LoginSerializer, UserSerializer, UserProfileSerializer, UserReviewSerializer, CardSerializer
 from django.contrib.auth import authenticate, login, logout
-from main.models import CustomUser, Card
-from .serializers import CardSerializer
+from main.models import CustomUser, Card, UserReview
 
 # Получение списка пользователей (только для админа)
 @api_view(["GET"])
@@ -134,3 +133,59 @@ def update_profile_api(request):
         serializer.save()
         return Response(serializer.data)
     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+# Получить все отзывы о пользователе
+@api_view(["GET"])
+def user_reviews_list(request, user_id):
+    try:
+        user = CustomUser.objects.get(id=user_id)
+    except CustomUser.DoesNotExist:
+        return Response({"detail": "Пользователь не найден"}, status=status.HTTP_404_NOT_FOUND)
+
+    reviews = UserReview.objects.filter(reviewed=user)
+    serializer = UserReviewSerializer(reviews, many=True)
+    return Response(serializer.data)
+
+# Добавить или обновить отзыв
+@api_view(["POST", "PUT", "DELETE"])
+@permission_classes([IsAuthenticated])
+def manage_review(request, user_id):
+    try:
+        reviewed_user = CustomUser.objects.get(id=user_id)
+    except CustomUser.DoesNotExist:
+        return Response({"detail": "Пользователь не найден"}, status=status.HTTP_404_NOT_FOUND)
+
+    if request.user.id == reviewed_user.id:
+        return Response({"message": "Нельзя оставить отзыв самому себе"}, status=status.HTTP_200_OK)
+    try:
+        review = UserReview.objects.get(reviewer=request.user, reviewed=reviewed_user)
+    except UserReview.DoesNotExist:
+        review = None
+
+    # POST — создать отзыв
+    if request.method == "POST":
+        if review:
+            return Response({"detail": "Вы уже оставили отзыв."}, status=status.HTTP_400_BAD_REQUEST)
+        serializer = UserReviewSerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save(reviewer=request.user, reviewed=reviewed_user)
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    # PUT — редактирование отзыва
+    if request.method == "PUT":
+        if not review:
+            return Response({"detail": "Отзыв не найден"}, status=status.HTTP_404_NOT_FOUND)
+        serializer = UserReviewSerializer(review, data=request.data, partial=True)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    # DELETE — удалить отзыв
+    if request.method == "DELETE":
+        if not review:
+            return Response({"detail": "Отзыв не найден"}, status=status.HTTP_404_NOT_FOUND)
+        review.delete()
+        return Response({"message": "Отзыв удален"}, status=status.HTTP_204_NO_CONTENT)
