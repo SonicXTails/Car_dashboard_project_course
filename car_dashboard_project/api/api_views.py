@@ -165,6 +165,9 @@ def manage_review(request, user_id):
 
     # POST — создать отзыв
     if request.method == "POST":
+        if request.user.role == 'analyst':
+            return Response({"detail": "Аналитик не может оставлять отзывы"}, status=status.HTTP_403_FORBIDDEN)
+        # admin может через API
         if review:
             return Response({"detail": "Вы уже оставили отзыв."}, status=status.HTTP_400_BAD_REQUEST)
         serializer = UserReviewSerializer(data=request.data)
@@ -172,6 +175,7 @@ def manage_review(request, user_id):
             serializer.save(reviewer=request.user, reviewed=reviewed_user)
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
 
     # PUT — редактирование отзыва
     if request.method == "PUT":

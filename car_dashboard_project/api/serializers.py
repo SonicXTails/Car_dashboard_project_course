@@ -47,7 +47,19 @@ class UserProfileSerializer(serializers.ModelSerializer):
 
 # Отзывы
 class UserReviewSerializer(serializers.ModelSerializer):
+    reviewer_username = serializers.CharField(source='reviewer.username', read_only=True)
+    reviewer_avatar = serializers.ImageField(source='reviewer.profile_image', read_only=True)
+
     class Meta:
         model = UserReview
-        fields = ['id', 'reviewer', 'reviewed', 'rating', 'comment']
-        read_only_fields = ['id', 'reviewer', 'reviewed']
+        fields = [
+            'id', 
+            'rating', 
+            'comment', 
+            'reviewer', 
+            'reviewed', 
+            'reviewer_username', 
+            'reviewer_avatar'
+        ]
+        read_only_fields = ['id', 'reviewer', 'reviewed', 'reviewer_username', 'reviewer_avatar']
+

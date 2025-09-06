@@ -18,6 +18,5 @@ urlpatterns = [
     path('admin-panel/', admin_panel_view, name='admin_panel'),
     path('manager-panel/', manager_panel_view, name='manager_panel'),
 
-    path('cards/<int:card_id>/', card_detail_view, name='card_detail'),
-
+    path("cards/<int:pk>/", views.card_detail_view, name="card_detail"),
 ]
