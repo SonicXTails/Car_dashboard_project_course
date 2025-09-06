@@ -4,7 +4,6 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.http import HttpResponseForbidden
 from django.contrib.auth import login, authenticate, logout
-from django.utils import timezone
 
 # ===== Профиль пользователя =====
 @login_required
@@ -144,24 +143,16 @@ def manager_panel_view(request):
 
 
 # ===== Детали карточки =====
-def card_detail_view(request, pk):
-    card = get_object_or_404(Card, pk=pk)
-    user = card.user  
+@login_required
+def card_detail_view(request, card_id):
+    card = get_object_or_404(Card, id=card_id)
+    seller = card.user  # здесь seller — владелец карточки
+    from django.utils import timezone
+    days_on_site = (timezone.now().date() - seller.date_joined.date()).days
 
-    days_on_site = (timezone.now() - user.date_joined).days
+    return render(request, 'main/card_detail.html', {
+        'card': card,
+        'seller': seller,
+        'days_on_site': days_on_site,
+    })
 
-    context = {
-        "card": card,
-        "days_on_site": days_on_site,
-        "seller": {
-            "username": user.username,
-            "first_name": user.first_name,
-            "last_name": user.last_name,
-            "company_name": getattr(user, "company_name", None),
-            "phone": getattr(user, "phone", None),
-            "profile_image": getattr(user, "profile_image", None),
-            "user_type": getattr(user, "user_type", "individual"),
-            "date_joined": user.date_joined,
-        }
-    }
-    return render(request, "main/card_detail.html", context)

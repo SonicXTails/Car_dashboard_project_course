@@ -43,6 +43,18 @@ class Card(models.Model):
     user = models.ForeignKey(CustomUser, on_delete=models.CASCADE, related_name='cards')
     title = models.CharField(max_length=200)
     image = models.ImageField(upload_to='cards/', blank=True, null=True)
+    price = models.DecimalField(max_digits=12, decimal_places=2, blank=True, null=True)  # цена
+    description = models.TextField(blank=True, null=True)  # описание
+    # Автомобильные характеристики
+    brand = models.CharField(max_length=100, blank=True, null=True)
+    model_name = models.CharField(max_length=100, blank=True, null=True)
+    year = models.PositiveIntegerField(blank=True, null=True)
+    mileage = models.PositiveIntegerField(blank=True, null=True)  # пробег
+    engine_volume = models.DecimalField(max_digits=5, decimal_places=2, blank=True, null=True)  # литры
+    fuel_type = models.CharField(max_length=50, blank=True, null=True)
+    transmission = models.CharField(max_length=50, blank=True, null=True)
+    drive_type = models.CharField(max_length=50, blank=True, null=True)
+    color = models.CharField(max_length=50, blank=True, null=True)
     created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):

@@ -63,3 +63,12 @@ class UserReviewSerializer(serializers.ModelSerializer):
         ]
         read_only_fields = ['id', 'reviewer', 'reviewed', 'reviewer_username', 'reviewer_avatar']
 
+class CardSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Card
+        fields = [
+            'id', 'title', 'image', 'price', 'description', 'brand', 'model_name',
+            'year', 'mileage', 'engine_volume', 'fuel_type', 'transmission', 
+            'drive_type', 'color', 'created_at', 'user'
+        ]
+        read_only_fields = ['id', 'created_at', 'user']

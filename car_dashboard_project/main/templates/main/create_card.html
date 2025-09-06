@@ -1,15 +1,38 @@
 {% extends "main/base.html" %}
-{% block title %}{% if edit %}Редактировать{% else %}Создать{% endif %} карточку{% endblock %}
+{% block title %}{% if edit %}Редактировать{% else %}Создать{% endif %} объявление{% endblock %}
 
 {% block content %}
-<div class="row justify-content-center">
-    <div class="col-md-6">
-        <h2 class="mb-4">{% if edit %}Редактировать{% else %}Создать{% endif %} карточку</h2>
-        <form method="post" enctype="multipart/form-data">
-            {% csrf_token %}
-            {{ form.as_p }}
-            <button type="submit" class="btn btn-success">{% if edit %}Сохранить{% else %}Создать{% endif %}</button>
-        </form>
+<div class="row mt-5 mx-0">
+    <div class="col-12 px-0">
+        <div class="card shadow-sm w-100" style="border-radius: 0;">
+            <div class="card-header bg-primary text-white text-center">
+                <h3 class="mb-0">{% if edit %}Редактировать{% else %}Создать{% endif %} объявление</h3>
+            </div>
+            <div class="card-body px-5">
+                <form method="post" enctype="multipart/form-data">
+                    {% csrf_token %}
+
+                    {% for field in form %}
+                    <div class="mb-3">
+                        {{ field.label_tag }}
+                        {{ field }}
+                        {% if field.help_text %}
+                            <small class="form-text text-muted">{{ field.help_text }}</small>
+                        {% endif %}
+                        {% for error in field.errors %}
+                            <div class="text-danger">{{ error }}</div>
+                        {% endfor %}
+                    </div>
+                    {% endfor %}
+
+                    <div class="d-flex justify-content-center mt-4">
+                        <button type="submit" class="btn btn-success px-5">
+                            {% if edit %}Сохранить{% else %}Создать{% endif %}
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
     </div>
 </div>
 {% endblock %}

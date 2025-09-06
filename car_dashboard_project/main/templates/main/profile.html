@@ -44,57 +44,34 @@
         {% if request.user.id == profile_user.id %}
             <div class="card mb-4 bg-dark text-light border-secondary p-3" id="edit-profile-form" style="display:none;">
                 <h5>Редактировать профиль</h5>
-                <form method="POST" enctype="multipart/form-data">
-                    {% csrf_token %}
-                    <div class="mb-3">
-                        <label for="user_type" class="form-label">Тип пользователя</label>
-                        <select id="user_type" name="user_type" class="form-select">
-                            <option value="">Выберите тип</option>
-                            <option value="individual" {% if profile_user.user_type == 'individual' %}selected{% endif %}>Физическое лицо</option>
-                            <option value="company" {% if profile_user.user_type == 'company' %}selected{% endif %}>Юридическое лицо</option>
-                        </select>
-                    </div>
+                <div class="mb-3">
+                    <label for="user_type" class="form-label">Тип пользователя</label>
+                    <select id="user_type" class="form-select">
+                        <option value="">Выберите тип</option>
+                        <option value="individual" {% if profile_user.user_type == 'individual' %}selected{% endif %}>Физическое лицо</option>
+                        <option value="company" {% if profile_user.user_type == 'company' %}selected{% endif %}>Юридическое лицо</option>
+                    </select>
+                </div>
 
-                    <!-- Поля для физлица -->
-                    <div id="individual_fields" style="display: {% if profile_user.user_type == 'individual' %}block{% else %}none{% endif %};">
-                        <div class="mb-3">
-                            <label for="first_name" class="form-label">Имя</label>
-                            <input type="text" id="first_name" name="first_name" value="{{ profile_user.first_name }}" class="form-control">
-                        </div>
-                        <div class="mb-3">
-                            <label for="last_name" class="form-label">Фамилия</label>
-                            <input type="text" id="last_name" name="last_name" value="{{ profile_user.last_name }}" class="form-control">
-                        </div>
-                        <div class="mb-3">
-                            <label for="middle_name" class="form-label">Отчество</label>
-                            <input type="text" id="middle_name" name="middle_name" value="{{ profile_user.middle_name }}" class="form-control">
-                        </div>
-                    </div>
+                <div id="individual_fields" style="display: {% if profile_user.user_type == 'individual' %}block{% else %}none{% endif %};">
+                    <input type="text" id="first_name" value="{{ profile_user.first_name }}" class="form-control mb-2" placeholder="Имя">
+                    <input type="text" id="last_name" value="{{ profile_user.last_name }}" class="form-control mb-2" placeholder="Фамилия">
+                    <input type="text" id="middle_name" value="{{ profile_user.middle_name }}" class="form-control mb-2" placeholder="Отчество">
+                </div>
 
-                    <!-- Поля для юрлица -->
-                    <div id="company_fields" style="display: {% if profile_user.user_type == 'company' %}block{% else %}none{% endif %};">
-                        <div class="mb-3">
-                            <label for="company_name" class="form-label">Название компании</label>
-                            <input type="text" id="company_name" name="company_name" value="{{ profile_user.company_name }}" class="form-control">
-                        </div>
-                    </div>
+                <div id="company_fields" style="display: {% if profile_user.user_type == 'company' %}block{% else %}none{% endif %};">
+                    <input type="text" id="company_name" value="{{ profile_user.company_name }}" class="form-control mb-2" placeholder="Компания">
+                </div>
 
-                    <!-- Фото и телефон -->
-                    <div class="mb-3">
-                        <label for="profile_image" class="form-label">Фото профиля</label>
-                        <input type="file" id="profile_image" name="profile_image" class="form-control">
-                    </div>
-                    <div class="mb-3">
-                        <label for="phone" class="form-label">Телефон</label>
-                        <input type="text" id="phone" name="phone" value="{{ profile_user.phone }}" class="form-control">
-                    </div>
+                <input type="text" id="phone" value="{{ profile_user.phone }}" class="form-control mb-2" placeholder="Телефон">
+                <input type="file" id="profile_image" class="form-control mb-2">
 
-                    <button type="submit" class="btn btn-success">Сохранить профиль</button>
-                </form>
+                <button id="save-profile-btn" class="btn btn-success">Сохранить профиль</button>
             </div>
-        {% endif %}
-    </div>
-</div>
+
+                    {% endif %}
+                </div>
+            </div>
 
 <!-- Карточки пользователя -->
 <div class="row row-cols-1 row-cols-md-3 g-4 mt-3">
@@ -122,40 +99,64 @@
     {% endfor %}
 </div>
 
-<!-- JS -->
 <script>
 const editBtn = document.getElementById('edit-profile-btn');
 const editForm = document.getElementById('edit-profile-form');
+const saveBtn = document.getElementById('save-profile-btn');
+
+if (editBtn) {
+    editBtn.addEventListener('click', () => {
+        editForm.style.display = editForm.style.display === 'none' ? 'block' : 'none';
+    });
+}
+
+saveBtn.addEventListener('click', async () => {
+    const formData = new FormData();
+    formData.append('id', {{ profile_user.id }});
+    formData.append('user_type', document.getElementById('user_type').value);
+    formData.append('first_name', document.getElementById('first_name').value);
+    formData.append('last_name', document.getElementById('last_name').value);
+    formData.append('middle_name', document.getElementById('middle_name').value);
+    formData.append('company_name', document.getElementById('company_name').value);
+    formData.append('phone', document.getElementById('phone').value);
+
+    const imageInput = document.getElementById('profile_image');
+    if (imageInput.files.length > 0) formData.append('profile_image', imageInput.files[0]);
+
+    const response = await fetch("{% url 'api_user_modify' %}", {
+        method: "PUT",
+        headers: {
+            'X-CSRFToken': '{{ csrf_token }}'
+        },
+        body: formData
+    });
+
+    if (response.ok) {
+        const data = await response.json();
+        alert('Профиль обновлен!');
+        location.reload();
+    } else {
+        const error = await response.json();
+        alert('Ошибка: ' + JSON.stringify(error));
+    }
+});
+
+// Показ/скрытие полей в зависимости от типа пользователя
 const userTypeSelect = document.getElementById('user_type');
 const individualFields = document.getElementById('individual_fields');
 const companyFields = document.getElementById('company_fields');
 
-if (editBtn) {
-    editBtn.addEventListener('click', () => {
-        // Toggle: показываем или скрываем форму
-        if(editForm.style.display === 'none' || editForm.style.display === '') {
-            editForm.style.display = 'block';
-            window.scrollTo({ top: editForm.offsetTop - 20, behavior: 'smooth' });
-        } else {
-            editForm.style.display = 'none';
-        }
-    });
-}
-
-if (userTypeSelect) {
-    userTypeSelect.addEventListener('change', function() {
-        if (this.value === 'individual') {
-            individualFields.style.display = 'block';
-            companyFields.style.display = 'none';
-        } else if (this.value === 'company') {
-            individualFields.style.display = 'none';
-            companyFields.style.display = 'block';
-        } else {
-            individualFields.style.display = 'none';
-            companyFields.style.display = 'none';
-        }
-    });
-}
+userTypeSelect.addEventListener('change', function() {
+    if (this.value === 'individual') {
+        individualFields.style.display = 'block';
+        companyFields.style.display = 'none';
+    } else if (this.value === 'company') {
+        individualFields.style.display = 'none';
+        companyFields.style.display = 'block';
+    } else {
+        individualFields.style.display = 'none';
+        companyFields.style.display = 'none';
+    }
+});
 </script>
-
 {% endblock %}
